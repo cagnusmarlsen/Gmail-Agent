@@ -1,79 +1,98 @@
-"use client"
+"use client";
 
-import { JSX, SVGProps, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
+import { JSX, SVGProps, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { LangchainToolSet } from "composio-core";
 
-
 export default function Component() {
-
   const [showDialog, setShowDialog] = useState(false);
-  const [showLink, setShowLink] = useState({connectedAccountId: "", url: ""});
+  const [showLink, setShowLink] = useState({ connectedAccountId: "", url: "" });
   const [userQuery, setUserQuery] = useState("");
   const [result, setResult] = useState("");
-  const [triggerData, setTriggerData] = useState({from: "", message: "", id: ""});
+  const [triggerData, setTriggerData] = useState({
+    from: "",
+    message: "",
+    id: "",
+  });
   const isSubscribed = useRef(false);
 
   useEffect(() => {
-    console.log("CALLED");
-    if(isSubscribed.current) {
+
+    if (isSubscribed.current) {
       return;
     }
-    const toolset = new LangchainToolSet({ apiKey: "9u96ly6pioqfmne0zvildp"});
-    toolset.client.triggers.subscribe(async (data) => {
-      if(data.originalPayload.labelIds[0] === "UNREAD") {
-        const from = data.originalPayload.payload.headers[16].value;
-        const message = data.originalPayload.snippet;
-        const id = data.originalPayload.threadId;
+    //Put your composio api key here-
+    const toolset = new LangchainToolSet({ apiKey: "process.env.COMPOSIO_API_KEY" });
+    toolset.client.triggers.subscribe(
+      async (data) => {
+        if (data.originalPayload.labelIds[0] === "UNREAD") {
+          const from = data.originalPayload.payload.headers[16].value;
+          const message = data.originalPayload.snippet;
+          const id = data.originalPayload.threadId;
 
-        console.log("THIS IS THE ID", id);
-        setTriggerData(prevData => {
-          if (!prevData || prevData.from !== from || prevData.message !== message) {
-            return { from, message, id };
+          console.log("THIS IS THE ID", id);
+          setTriggerData((prevData) => {
+            if (
+              !prevData ||
+              prevData.from !== from ||
+              prevData.message !== message
+            ) {
+              return { from, message, id };
+            }
+            return prevData;
+          });
+          //Change the from variable to the email address of the user
+          if (from === "John Doe <john.doe@gmail.com>") {
+            const res = await fetch("/api/newMessage", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ from, message, id }),
+            });
           }
-          return prevData;
-        });
-        if(from === 'Debjyoti Banerjee <db.debjyotibanerjee@gmail.com>') {
-          const res = await fetch('/api/newMessage', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({from, message, id}),
-          })
         }
-      }
-      console.log("DATA FOR ME", data);
-    }, {entityId: "default"})
+      },
+      { entityId: "default" }
+    );
     isSubscribed.current = true;
-  },[])
+  }, []);
 
   async function handleClick() {
     try {
-      const res = await fetch('/authenticate', {
-        method: 'POST'})
+      const res = await fetch("/authenticate", {
+        method: "POST",
+      });
       const info = await res.json();
-      setShowLink({connectedAccountId: info.connectedAccountId, url: info.redirectUrl});
+      setShowLink({
+        connectedAccountId: info.connectedAccountId,
+        url: info.redirectUrl,
+      });
       setShowDialog(true);
-
     } catch (error) {
-        console.log(error)
+      console.log(error);
     }
   }
 
   async function handleQuery() {
     try {
-      const res = await fetch('/api/result', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({userQuery}),
-      })
+      const res = await fetch("/api/result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userQuery }),
+      });
 
       const result = await res.json();
       setResult(result);
     } catch (error) {
-        console.log(error)
+      console.log(error);
     }
   }
 
@@ -83,39 +102,55 @@ export default function Component() {
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-8 leading-tight">
           Hi. I am your Gmail Assistant.
         </h1>
-        <p className="text-black mb-8">Please make sure you are logged in to Gmail to start</p>
+        <p className="text-black mb-8">
+          Please make sure you are logged in to Gmail to start
+        </p>
         <div className="flex justify-center gap-4 mt-4">
-          <Button aria-label="Gmail" onClick={handleClick} >
+          <Button aria-label="Gmail" onClick={handleClick}>
             <MailIcon className="mr-2 h-5 w-5" />
             Gmail
           </Button>
         </div>
         <div className="w-full max-w-sm">
-          <Textarea placeholder="What do you want to do?" className="mt-8 resize-none" onChange={(e) => setUserQuery(e.target.value)}/> 
+          <Textarea
+            placeholder="What do you want to do?"
+            className="mt-8 resize-none"
+            onChange={(e) => setUserQuery(e.target.value)}
+          />
         </div>
         <div className="mt-8">
           <Button onClick={handleQuery}>Lets Go!</Button>
         </div>
-        {result.length > 0 && <div className="w-full max-w-md">
-          <Textarea placeholder="Result" className="mt-8 border-0" value={result} readOnly/>
-        </div>}
+        {result.length > 0 && (
+          <div className="w-full max-w-md">
+            <Textarea
+              placeholder="Result"
+              className="mt-8 border-0"
+              value={result}
+              readOnly
+            />
+          </div>
+        )}
       </div>
       {showDialog && (
-        <Dialog open = {showDialog} onOpenChange={setShowDialog}>
+        <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Connect account</DialogTitle>
-          <DialogDescription>
-            Please complete authentication with Composio using this link -;
-          </DialogDescription>
-        </DialogHeader>
-        <div className=""><a href={`${showLink.url}`} target="_blank">{showLink.url}</a></div>
-        </DialogContent>
+            <DialogHeader>
+              <DialogTitle>Connect account</DialogTitle>
+              <DialogDescription>
+                Please complete authentication with Composio using this link -;
+              </DialogDescription>
+            </DialogHeader>
+            <div className="">
+              <a href={`${showLink.url}`} target="_blank">
+                {showLink.url}
+              </a>
+            </div>
+          </DialogContent>
         </Dialog>
-          
       )}
     </main>
-  )
+  );
 }
 
 function MailIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
@@ -135,5 +170,5 @@ function MailIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
       <rect width="20" height="16" x="2" y="4" rx="2" />
       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
     </svg>
-  )
+  );
 }
