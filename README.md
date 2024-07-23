@@ -17,16 +17,21 @@ The loom of the working project can be seen here - https://www.loom.com/share/c7
 - Then, run the development server:
 
   npm run dev
-  # or
+  or
   yarn dev
-  # or
+  or
   pnpm dev
-  # or
+  or
   bun dev
 
 - Open http://localhost:3000 with your browser to see the result.
 - Click the "Authenticate" button and complete authentication.
 - You're done, the agent can now be used :)
+
+## Screenshots
+
+![image](https://github.com/user-attachments/assets/dc5e4645-fbc4-43d5-9184-e3c76605a5e8)
+
 
 
 
