@@ -2,11 +2,11 @@ export async function POST() {
   const options = {
     method: "POST",
     headers: {
-      "X-API-Key": "process.env.COMPOSIO_API_KEY",
+      "X-API-Key": "COMPOSIO_API_KEY",
       "Content-Type": "application/json",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
-    body: '{"integrationId":"process.env.INTEGRATION_ID"}',
+    body: '{"integrationId":"INTEGRATION_ID"}',
   };
 
   const res = await fetch(

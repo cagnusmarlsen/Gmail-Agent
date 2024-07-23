@@ -31,7 +31,7 @@ export default function Component() {
       return;
     }
     //Put your composio api key here-
-    const toolset = new LangchainToolSet({ apiKey: "process.env.COMPOSIO_API_KEY" });
+    const toolset = new LangchainToolSet({ apiKey: "COMPOSIO_API_KEY" });
     toolset.client.triggers.subscribe(
       async (data) => {
         if (data.originalPayload.labelIds[0] === "UNREAD") {
@@ -39,7 +39,6 @@ export default function Component() {
           const message = data.originalPayload.snippet;
           const id = data.originalPayload.threadId;
 
-          console.log("THIS IS THE ID", id);
           setTriggerData((prevData) => {
             if (
               !prevData ||
@@ -50,13 +49,15 @@ export default function Component() {
             }
             return prevData;
           });
-          //Change the from variable to the email address of the user
+          //Change the 'from' variable to the email address of the user
           if (from === "John Doe <john.doe@gmail.com>") {
             const res = await fetch("/api/newMessage", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ from, message, id }),
             });
+            const result = await res.json();
+            setResult(result);
           }
         }
       },
@@ -97,20 +98,21 @@ export default function Component() {
   }
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary to-secondary">
+    <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary to-secondary">
       <div className="flex flex-col items-center container px-4 md:px-6 lg:px-8 text-center">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-8 leading-tight">
           Hi. I am your Gmail Assistant.
         </h1>
-        <p className="text-black mb-8">
-          Please make sure you are logged in to Gmail to start
+        <p className="text-black mb-4">
+          Please make sure to authenticate before starting
         </p>
         <div className="flex justify-center gap-4 mt-4">
           <Button aria-label="Gmail" onClick={handleClick}>
             <MailIcon className="mr-2 h-5 w-5" />
-            Gmail
+            Authenticate
           </Button>
         </div>
+
         <div className="w-full max-w-sm">
           <Textarea
             placeholder="What do you want to do?"
@@ -125,7 +127,7 @@ export default function Component() {
           <div className="w-full max-w-md">
             <Textarea
               placeholder="Result"
-              className="mt-8 border-0"
+              className="mt-8 border-0 min-h-60 overflow-auto"
               value={result}
               readOnly
             />

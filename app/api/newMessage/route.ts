@@ -3,7 +3,7 @@ import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { LangchainToolSet } from "composio-core";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-const toolset = new LangchainToolSet({ apiKey: "process.env.COMPOSIO_API_KEY" });
+const toolset = new LangchainToolSet({ apiKey: "COMPOSIO_API_KEY" });
 const myTools = await toolset.get_actions({
   actions: ["gmail_reply_to_thread"],
 });
@@ -14,14 +14,14 @@ export async function POST(req: Request) {
 
     const llm = new ChatMistralAI({
       model: "mistral-large-latest",
-      apiKey: "process.env.MISTRAL_API_KEY",
+      apiKey: "MISTRAL_API_KEY",
     });
 
     // Customize the prompt to do what you want
     const prompt = ChatPromptTemplate.fromMessages([
       [
         "system",
-        `You are an AI email assistant who can respond to emails from John Doe with email address - 'john.doe@gmail.com'. Your goal is to do the following - If you receive an email from John Doe 'john.doe@gmail.com', respond appropriately by understanding the email content - ${message} and also ask to meet him sometime next month. The thread ID is ${id}. `,
+        `You are an AI email assistant who can respond to emails from John Doe with email address - 'john.doe@gmail.com'. Your goal is to do the following - If you receive an email from John Doe 'john.doe@gmail.com', respond appropriately by understanding the email content - ${message}. The thread ID is ${id}. `,
       ],
       ["human", "{input}"],
       ["placeholder", "{agent_scratchpad}"],

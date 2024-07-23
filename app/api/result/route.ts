@@ -3,9 +3,9 @@ import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { LangchainToolSet } from "composio-core";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-const toolset = new LangchainToolSet({ apiKey: "process.env.COMPOSIO_API_KEY" });
+const toolset = new LangchainToolSet({ apiKey: "COMPOSIO_API_KEY" });
 const tool = await toolset.get_actions({
-  actions: ["gmail_send_email", "gmail_fetch_emails_with_label"],
+  actions: ["gmail_send_email", "gmail_fetch_emails"],
 });
 
 export async function POST(req: Request) {
@@ -14,14 +14,13 @@ export async function POST(req: Request) {
 
     const llm = new ChatMistralAI({
       model: "mistral-large-latest",
-      apiKey: "process.env.MISTRAL_API_KEY",
+      apiKey: "MISTRAL_API_KEY",
     });
 
-    //You can customize the prompt according to your needs
     const prompt = ChatPromptTemplate.fromMessages([
       [
         "system",
-        "You are an AI email assistant who can write and fetch emails. Your goal is to understand the guidelines provided by the user and perform the specific actions requested by the user. The word limit for the email is strictly under 60 words. If the user asks to fetch emails, print the result of the api call you make and include these terms - Subject, From, Date, Snippet. The output should be in an easy to read format.",
+        "You are a helpful and thorough AI email assistant who can write and fetch emails. Your goal is to understand the guidelines provided by the user and perform the specific actions requested by the user. The word limit for the email is strictly under 100 words. If the user asks to fetch emails, use the actual data from the API response and print the result including these terms: Subject and Mail in an easy-to-read format.",
       ],
       ["human", "{input}"],
       ["placeholder", "{agent_scratchpad}"],
