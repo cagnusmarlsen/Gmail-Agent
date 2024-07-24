@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Gmail Agent
+This Gmail agent can automatically perform actions like sending, fetching and responding to mails based on user constraints.
 
-## Getting Started
+This project has been built completely using Next.js, Typescript and Composio.
 
-First, run the development server:
+## Demo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The loom of the working project can be seen here - https://www.loom.com/share/c740282a16a24a3cb1806dc36b2df2df
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Create a .env.local file at the root of the project and add the following keys -
+    -COMPOSIO_API_KEY, LLM_API_KEY (Mistral was used for this project), INTEGRATION_ID (id of the integration from composio you want to connect to).
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- npm install to install dependencies.
+  
+- Then, run the development server:
 
-## Learn More
+  npm run dev
+  or
+  yarn dev
+  or
+  pnpm dev
+  or
+  bun dev
 
-To learn more about Next.js, take a look at the following resources:
+- Open http://localhost:3000 with your browser to see the result.
+- Click the "Authenticate" button and complete authentication.
+- You're done, the agent can now be used :)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Screenshots
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+![image](https://github.com/user-attachments/assets/dc5e4645-fbc4-43d5-9184-e3c76605a5e8)
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+
+
+
