@@ -12,26 +12,29 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { LangchainToolSet } from "composio-core";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function Component() {
   const [showDialog, setShowDialog] = useState(false);
   const [showLink, setShowLink] = useState({ connectedAccountId: "", url: "" });
   const [userQuery, setUserQuery] = useState("");
   const [result, setResult] = useState("");
+  const [triggerDetails, setTriggerDetails] = useState("");
   const [triggerData, setTriggerData] = useState({
     from: "",
     message: "",
     id: "",
   });
   const isSubscribed = useRef(false);
+  const lastMessage = useRef(null);
 
-  useEffect(() => {
-
+  const handleTrigger = async () => {
     if (isSubscribed.current) {
       return;
     }
-    //Put your composio api key here-
-    const toolset = new LangchainToolSet({ apiKey: "COMPOSIO_API_KEY" });
+
+    const toolset = new LangchainToolSet({ apiKey: process.env.NEXT_PUBLIC_COMPOSIO_API_KEY });
     toolset.client.triggers.subscribe(
       async (data) => {
         if (data.originalPayload.labelIds[0] === "UNREAD") {
@@ -49,12 +52,13 @@ export default function Component() {
             }
             return prevData;
           });
-          //Change the 'from' variable to the email address of the user
-          if (from === "John Doe <john.doe@gmail.com>") {
+
+          if (from === triggerDetails && lastMessage.current !== message) {
+            lastMessage.current = message;
             const res = await fetch("/api/newMessage", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ from, message, id }),
+              body: JSON.stringify({ from, message, id, triggerDetails }),
             });
             const result = await res.json();
             setResult(result);
@@ -64,7 +68,7 @@ export default function Component() {
       { entityId: "default" }
     );
     isSubscribed.current = true;
-  }, []);
+  };
 
   async function handleClick() {
     try {
@@ -123,11 +127,30 @@ export default function Component() {
         <div className="mt-8">
           <Button onClick={handleQuery}>Lets Go!</Button>
         </div>
+
+        <div className="mt-10 flex flex-col">
+          <Label
+            htmlFor="triggerInput"
+            className="self-start mb-2 pl-2 text-sm"
+          >
+            Subscribe to triggers-
+          </Label>
+          <div className="flex justify-center gap-2">
+            <Input
+              placeholder="Enter name and Email"
+              id="triggerInput"
+              className="w-[300px]"
+              onChange={(e) => setTriggerDetails(e.target.value)}
+            ></Input>
+            <Button onClick={handleTrigger}>Subscribe</Button>
+          </div>
+        </div>
+
         {result.length > 0 && (
           <div className="w-full max-w-md">
             <Textarea
               placeholder="Result"
-              className="mt-8 border-0 min-h-60 overflow-auto"
+              className="mt-8 border-0 min-h-52 overflow-auto"
               value={result}
               readOnly
             />

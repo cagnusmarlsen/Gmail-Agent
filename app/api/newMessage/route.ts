@@ -1,27 +1,27 @@
-import { ChatMistralAI } from "@langchain/mistralai";
+import { ChatOpenAI } from "@langchain/openai";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { LangchainToolSet } from "composio-core";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-const toolset = new LangchainToolSet({ apiKey: process.env.COMPOSIO_API_KEY });
+const toolset = new LangchainToolSet({ apiKey: process.env.NEXT_PUBLIC_COMPOSIO_API_KEY });
 const myTools = await toolset.get_actions({
   actions: ["gmail_reply_to_thread"],
 });
 
 export async function POST(req: Request) {
   try {
-    const { from, message, id } = await req.json();
+    const { from, message, id, triggerDetails } = await req.json();
 
-    const llm = new ChatMistralAI({
-      model: "mistral-large-latest",
-      apiKey: process.env.MISTRAL_API_KEY,
+    const llm = new ChatOpenAI({
+      model: "gpt-4o-mini",
+      apiKey:
+        process.env.OPENAI_API_KEY,
     });
 
-    // Customize the prompt to do what you want
     const prompt = ChatPromptTemplate.fromMessages([
       [
         "system",
-        `You are an AI email assistant who can respond to emails from John Doe with email address - 'john.doe@gmail.com'. Your goal is to do the following - If you receive an email from John Doe 'john.doe@gmail.com', respond appropriately by understanding the email content - ${message}. The thread ID is ${id}. `,
+        `You are an AI email assistant who can respond to emails from ${triggerDetails}. Your goal is to do the following - If you receive an email from ${triggerDetails}, respond appropriately by understanding the email content - ${message}. The thread ID is ${id}. `,
       ],
       ["human", "{input}"],
       ["placeholder", "{agent_scratchpad}"],
