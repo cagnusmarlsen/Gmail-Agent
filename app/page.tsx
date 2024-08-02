@@ -34,7 +34,10 @@ export default function Component() {
       return;
     }
 
-    const toolset = new LangchainToolSet({ apiKey: process.env.NEXT_PUBLIC_COMPOSIO_API_KEY });
+    const toolset = new LangchainToolSet({
+      apiKey: process.env.NEXT_PUBLIC_COMPOSIO_API_KEY,
+    });
+
     toolset.client.triggers.subscribe(
       async (data) => {
         if (data.originalPayload.labelIds[0] === "UNREAD") {
