@@ -102,7 +102,7 @@ export default function Component() {
     <main className="flex pt-20 justify-center min-h-screen bg-gradient-to-br from-primary to-secondary">
       <div className="flex flex-col items-center container px-4 md:px-6 lg:px-8 text-center">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-8 leading-tight">
-          Hi, I'm your Gmail Assistant
+          Hi, I am your Gmail Assistant
         </h1>
 
         {authenticated && (
