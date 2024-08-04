@@ -3,26 +3,26 @@ import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { LangchainToolSet } from "composio-core";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-const toolset = new LangchainToolSet({
-  apiKey: process.env.NEXT_PUBLIC_COMPOSIO_API_KEY,
-  entityId: "default",
-});
-
-const tool = await toolset.get_actions(
-  {
-    actions: [
-      "gmail_send_email",
-      "gmail_fetch_emails",
-      "gmail_create_email_draft",
-      "gmail_create_label",
-    ],
-  },
-  "default"
-);
-
 export async function POST(req: Request) {
   try {
-    const { userQuery } = await req.json();
+    const { userQuery, showLink } = await req.json();
+
+    const toolset = new LangchainToolSet({
+      apiKey: process.env.NEXT_PUBLIC_COMPOSIO_API_KEY,
+      entityId: showLink?.connectedAccountId,
+    });
+
+    const tool = await toolset.get_actions(
+      {
+        actions: [
+          "gmail_send_email",
+          "gmail_fetch_emails",
+          "gmail_create_email_draft",
+          "gmail_create_label",
+        ],
+      },
+      showLink.connectedAccountId
+    );
 
     const llm = new ChatOpenAI({
       model: "gpt-4o-mini",
