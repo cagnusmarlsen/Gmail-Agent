@@ -12,8 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { LangchainToolSet } from "composio-core";
-import { v4 as uuidv4 } from "uuid";
 
 export default function Component() {
   const [showDialog, setShowDialog] = useState(false);
@@ -24,59 +22,101 @@ export default function Component() {
   const [authenticated, setAuthenticated] = useState<boolean>();
 
   useEffect(() => {
-    if (!localStorage.getItem("entityId")) {
-      let entityId = uuidv4();
-      localStorage.setItem("entityId", entityId);
-      setAuthenticated(false);
-    } else {
-      confirmAuth();
+    async function initAuth() {
+      if (!localStorage.getItem("entityId")) {
+        const response = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "init" }),
+        });
+        const data = await response.json();
+        if (data.entityId) {
+          localStorage.setItem("entityId", data.entityId);
+          setAuthenticated(false);
+        }
+      } else {
+        confirmAuth();
+      }
     }
+    initAuth();
   }, []);
 
-  const toolset = new LangchainToolSet({
-    apiKey: process.env.NEXT_PUBLIC_COMPOSIO_API_KEY,
-  });
+  useEffect(() => {
+    let pollTimer: NodeJS.Timeout;
+    
+    if (showDialog) {
+      pollTimer = setInterval(async () => {
+        const result = await confirmAuth();
+        if (result?.status === "active") {
+          setShowDialog(false);
+          clearInterval(pollTimer);
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+      }
+    };
+  }, [showDialog]);
 
   async function confirmAuth() {
     try {
-      const entityId = localStorage.getItem("entityId") ?? undefined;
-      const entity = await toolset.client.getEntity(entityId);
-      const connection = await entity.getConnection("gmail");
-      if (connection && entityId) {
+      const entityId = localStorage.getItem("entityId");
+      if (!entityId) return;
+
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "confirm", entityId }),
+      });
+
+      const data = await response.json();
+      if (data.status === "active") {
         setShowLink({
           connectedAccountId: entityId,
           url: "",
         });
         setAuthenticated(true);
-        return connection;
+        return data;
       } else {
-        console.log("something went wromg. Please Authenticate again");
+        setAuthenticated(false);
+        return data;
       }
     } catch (error) {
-      alert("Something went wrong!");
-      console.log(error);
+      console.error("Auth error:", error);
+      setAuthenticated(false);
     }
   }
 
   async function setupUserConnection() {
-    const entityId = localStorage.getItem("entityId") ?? undefined;
-    const entity = await toolset.client.getEntity(entityId);
-    const connection = await entity.getConnection("gmail");
-    if (!connection) {
-      const connection = await entity.initiateConnection("gmail");
-      if (entityId && connection.redirectUrl) {
+    try {
+      const entityId = localStorage.getItem("entityId");
+      if (!entityId) console.log("No entityId found");
+
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "setup", entityId }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
         setShowLink({
-          connectedAccountId: entityId,
-          url: connection.redirectUrl,
+          connectedAccountId: data.connectedAccountId,
+          url: data.url,
         });
+        setShowDialog(true);
       }
-      setShowDialog(true);
-      const connect = connection.waitUntilActive(60);
-      if ((await connect).status === "ACTIVE") {
+      
+      if (data.status === "active") {
         setAuthenticated(true);
       }
+    } catch (error) {
+      console.error("Setup error:", error);
+      alert("Failed to setup connection");
     }
-    return connection;
   }
 
   async function handleQuery() {
@@ -154,14 +194,6 @@ export default function Component() {
             />
           </div>
         )}
-        <div className="mt-auto mb-4">
-          <p className="text-gray-600">
-            Powered by{" "}
-            <a href="https://composio.dev/" target="_blank">
-              Composio
-            </a>
-          </p>
-        </div>
       </div>
       {showDialog && (
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
